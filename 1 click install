@@ -1,7 +1,5 @@
 #!/bin/bash
-#Change hostname 
 hostname as2.novalocal
-#Enter Password
 passwd
 
 cat > /etc/sysconfig/network <<\EOF
@@ -10,6 +8,8 @@ cat > /etc/sysconfig/network <<\EOF
 EOF
 
 cat > /etc/hosts <<\EOF
+127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
+::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
 10.2.1.58   as1.novalocal  as1  #172.16.2.107   #Medium
 10.2.1.56   as2.novalocal  as2  #172.16.2.108   #Medium
 10.2.1.57   as3.novalocal  as3  #172.16.2.109   #Medium
@@ -68,4 +68,6 @@ cat > /etc/profile.d/java.sh <<\EOF
  export PATH=$PATH:$JAVA_HOME/bin
 EOF
 
+wget http://public-repo-1.hortonworks.com/ambari/centos6/1.x/updates/1.2.3.7/ambari.repo
+cp ambari.repo /etc/yum.repos.d/ambari.repo
 
