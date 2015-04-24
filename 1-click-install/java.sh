@@ -1,10 +1,23 @@
 #!/bin/bash
-hostname as2.novalocal
-passwd
 
-cat > /etc/sysconfig/network <<\EOF
- NETWORKING=yes
- HOSTNAME=as2.novalocal
+#Author: Darshan S Mahendrakar
+#Email: darshan.sm@cloudwick.com
+#Date: 04-24-2015
+clear
+echo "Please Enter your Desired Hostname"
+  read HOSTNAME
+
+	cat /etc/sysconfig/network | grep NETWORKING > /tmp/hostname.txt
+	echo HOSTNAME=$HOSTNAME >> /tmp/hostname.txt
+	cat /tmp/hostname.txt > /etc/sysconfig/network
+
+  hostname $HOSTNAME
+  rm -fr /tmp/hostname.txt
+#END
+
+passwd <<EOF
+  dell
+  dell
 EOF
 
 cat > /etc/hosts <<\EOF
@@ -71,3 +84,4 @@ EOF
 wget http://public-repo-1.hortonworks.com/ambari/centos6/1.x/updates/1.2.3.7/ambari.repo
 cp ambari.repo /etc/yum.repos.d/ambari.repo
 
+bash
