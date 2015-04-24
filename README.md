@@ -1,8 +1,10 @@
 
 # Shell-Script
 Different types of shell script
+### 1 Click Installtion
 
-## 1 java.sh
+
+## 1. java.sh
 - Generates SSH-keygen
 -Turns of Iptables, Ip6Tables
 -Disables Selinux
