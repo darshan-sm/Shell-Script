@@ -23,22 +23,16 @@ EOF
 cat > /etc/hosts <<\EOF
 127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4
 ::1         localhost localhost.localdomain localhost6 localhost6.localdomain6
-10.2.1.58   as1.novalocal  as1  #172.16.2.107   #Medium
-10.2.1.56   as2.novalocal  as2  #172.16.2.108   #Medium
-10.2.1.57   as3.novalocal  as3  #172.16.2.109   #Medium
-10.2.1.146	as4.novalocal  as4	#172.16.0.85   #large
-10.2.1.144	as5.novalocal  as5	#172.16.0.86	#large
-10.2.1.83   as6.novalocal  as6  #172.16.0.77    #Large
-10.2.1.33   as7.novalocal  as7  #172.16.2.242   #Large
-10.2.0.90	as8.novalocal  as8  #172.16.3.20	#medium
+10.2.1.146 kdc.novalocal  kdc  #172.16.2.109
 EOF
 
 ssh-keygen -t rsa -P "" -f ~/.ssh/id_rsa
-mkdir -p ~/.ssh/authorized_keys
+touch  ~/.ssh/authorized_keys
+
 
 chkconfig iptables off
 /etc/init.d/iptables stop
-chkconfig iptables --list
+chkconfig iptables --list 
 
 chkconfig ip6tables off
 /etc/init.d/ip6tables stop
@@ -48,12 +42,6 @@ yum install -y ntp ntpupdate
 chkconfig ntpd on
 ntpdate pool.ntp.org
 /etc/init.d/ntpd start
-
-yum install -y ntp ntpupdate
-chkconfig ntpd on
-ntpdate pool.ntp.org
-/etc/init.d/ntpd start
-
 
 setenforce 0
 cat > /etc/sysconfig/selinux <<\EOF
@@ -72,14 +60,31 @@ cat > /etc/profile.d/java.sh <<\EOF
  export JAVA_HOME=/usr/java/jdk1.7.0_45
  export PATH=$PATH:$JAVA_HOME/bin
 EOF
-mkdir -p /usr/share/java
 
-wget http://public-repo-1.hortonworks.com/ambari/centos6/1.x/updates/1.2.3.7/ambari.repo
-cp ambari.repo /etc/yum.repos.d/ambari.repo
+mkdir  /usr/share/java
+
+yum install mysql-connector-java* -y
 
 wget http://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-5.1.35.tar.gz
 tar -xvzf mysql-connector-java-5.1.35.tar.gz
+mkdir  /usr/share/java
 cp mysql-connector-java-5.1.35/mysql-connector-java-5.1.35-bin.jar /usr/share/java/
+rm -rf mysql-connector-java-5.1.35.tar.gz
+rm -rf mysql-connector-java-5.1.35
+rm -rf ambari.repo
+rm -rf jdk-7u45-linux-x64.rpm
+rm -rf mysql-connector-java-5.1.35.tar.gz
+rm -rf mysql-connector-java-5.1.35
 
+echo never > /sys/kernel/mm/redhat_transparent_hugepage/enabled 
+cat > /etc/rc.local <<\EOF
+#!/bin/sh
+touch /var/lock/subsys/local
 
+#disable THP at boot time
+ if test -f /sys/kernel/mm/redhat_transparent_hugepage/enabled; then
+       echo never > /sys/kernel/mm/redhat_transparent_hugepage/enabled
+          fi
+EOF
+yum update -y 
 bash
