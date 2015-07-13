@@ -4,6 +4,9 @@
 #Date: 07/13/15
 
 path=/root/darshan/*
-LIST =  "*.txt  *.wsp"
-filename = $LIST
-find $path -name "$filename" -mtime +90 -type f -delete
+file_type =  "*.txt, *.wsp"
+
+for i in $file_type
+        do
+        find $path -name "$i" -mtime +90 -type f -delete
+        done
