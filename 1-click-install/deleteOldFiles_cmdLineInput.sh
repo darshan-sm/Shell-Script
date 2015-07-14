@@ -8,7 +8,7 @@
 ## Initializing variables
 ROOT_PATH=$1
 FILE_TYPE=$2
-NO_OF_DAYS=$3
+NO_OF_DAYS=${!#}
 
 TMP_DELETE_FILE=/tmp/toDelete.tmp
 DELETE_LOG=delete.log
