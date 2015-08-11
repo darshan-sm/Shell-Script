@@ -1,0 +1,4 @@
+lzrmdy *.log 30
+lzrmdy *.tar.gz 30
+lzidr *.tar.gz 30
+lzidr *.log 30
