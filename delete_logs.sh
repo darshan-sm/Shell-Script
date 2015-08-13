@@ -1,12 +1,11 @@
 #!/bin/bash
-# To Delete the old files using *.format which is older than x number of days from source file.
-# Cannot Run as ROOT USER. 
-# To Execute create flat file and pass the source file as the parameter.
+# Script to Compress files which are X day's old and Delete which are y day's old. 
+# Input file for logs or tar.gz "'APP_ID' 'FILE_TYPE' 'X/Y days old' " 
+# 
 # Author: Darshan S Mahendrakar
-# Date Created: 07/13/15
-# Modified : 07/20/15
+# Date Created: 08/12/15
 
-# Logging Deleted Files
+# Logging Files and Directories
 TMP_TAR_LOG='/tmp/toTar.tmp'
 TMP_DELETE_FILE='/tmp/toDelete.tmp'
 DELETE_LOG=/root/delete.log
@@ -14,22 +13,24 @@ FILE_PATH=/var/log/lz
 TAR_LOG=/tmp/delete_tar.log
 TMP_DIR=/tmp/tar_dir
 DATE=$(date +\%Y\%m\%d_\%H\%M)
+
 # User Execution Check
 function userCheck() {
-	if [[ $USER = "darshan" ]]; then 
-		echo "This script must NOT BE RUN AS root!" 
-		exit 1
+	if [[ $USER = "lzadmin" ]]; then 
+		sourceArguments
 	else
+		echo "This script must be executed as LZADMIN ONLY !"
+                exit 1
 		sourceArguments
 	fi
 }
 
 function sourceArguments() {
 	#echo "I am in sourcearguments"
-		cat $source_file | while read filepath type days;
+		cat $source_file | while read appid type days;
 	do
-		echo "$filepath $type $days";
-			ROOT_PATH=$filepath
+		echo "$appid $type $days";
+			APP_ID=$appid
 			FILE_TYPE="$type"
 			NO_OF_DAYS=$days
 		validateArguments
@@ -37,15 +38,14 @@ function sourceArguments() {
 		findFiles
 		 echo "im in find files"
 	done
-
 }
 
 # function to validate the given arguments
 function validateArguments() {
-	# checking argument ROOT_PATH
-	if [ -z "$ROOT_PATH" ]
+	# checking argument APP_ID
+	if [ -z "$APP_ID" ]
 	then
-		echo "ROOT path not specified"
+		echo "APP ID not specified"
 		exit 1
 	fi
 	# checking argument FILE_TYPE
@@ -65,34 +65,31 @@ function validateArguments() {
 
 # function to find files older than X days
 function findFiles() {
-echo "__________________________________________________________"
-set -x
-#	echo  echo "${FILE#*.}"
+#	echo  "${FILE#*.}"
 	ext=${FILE_TYPE#*.}
 	echo "$ext"
 	if [ $ext == "tar.gz" ]; then
 		echo "im in tar find files"
-		find "$FILE_PATH/$ROOT_PATH" -name  "${FILE_TYPE}"  -mtime  +$NO_OF_DAYS -type f  > $TMP_DELETE_FILE 
-		echo "find "${FILE_PATH}/${ROOT_PATH}"  -name  "${FILE_TYPE}"  -mtime  +$NO_OF_DAYS -type f  > $TMP_DELETE_FILE "
+		find "$FILE_PATH/$APP_ID" -name  "${FILE_TYPE}"  -mtime  +$NO_OF_DAYS -type f  > $TMP_DELETE_FILE 
 		cat $TMP_DELETE_FILE >> $DELETE_LOG
+	
+		# Function to Delete the tar files which are x number of days old
 		deleteFiles
 	else
 		echo "im in finding *.* files "
-		find "$FILE_PATH/$ROOT_PATH"  -name  "${FILE_TYPE}"  -mtime  +$NO_OF_DAYS -type f  > $TMP_TAR_LOG
-		echo "find "$FILE_PATH/$ROOT_PATH"  -name  "${FILE_TYPE}"  -mtime  +$NO_OF_DAYS -type f  > $TMP_TAR_LOG "
-		mkdir -p "${TMP_DIR}/${ROOT_PATH}_${DATE}"
+		find "$FILE_PATH/$APP_ID"  -name  "${FILE_TYPE}"  -mtime  +$NO_OF_DAYS -type f  > $TMP_TAR_LOG
+		mkdir -p "${TMP_DIR}/${APP_ID}_${DATE}"
 		echo "creating dir under tmp/tar_dir"
+	
+		# Function to move file to tmp dir to tar the files which are y number of days only
 		moveFiles
 fi
-set +x
-echo "__________________________________________________________"
 }
 
 # function that deletes files that are recorded in TMP_DELETE_FILE
 function deleteFiles() {
 	for file in `cat $TMP_DELETE_FILE`
 	do
-		echo "im in deleteFiles" 
 		filename=$file
 		echo "Deleting $filename"
 		if [ -f $filename ]
@@ -103,45 +100,34 @@ function deleteFiles() {
 			exit 1
 		fi
 	done
-
 }
 
 # function to move files recorded in TMP_TAR_LOG
 function moveFiles () {
 	for move_file in `cat $TMP_TAR_LOG`
-	
 	do 	
-	set -x
 		mvname=$move_file
-		echo "Moving $mvname"
 		if [  -f "$mvname" ]	
 		then
-			echo "moving $mvname to ${TMP_DIR}/${ROOT_PATH}"
-			mv "$mvname" "${TMP_DIR}/${ROOT_PATH}_${DATE}"
-		#	cd "${TMP_DIR}" && tar cvf ${ROOT_PATH}.tar.gz ${ROOT_PATH}/
+			echo "moving $mvname to ${TMP_DIR}/${APP_ID}_${DATE}"
+			mv "$mvname" "${TMP_DIR}/${APP_ID}_${DATE}"
 		else 
 			echo "NO FILES FOUND TO TAR" 
-			rm -rf "${TMP_DIR}/${ROOT_PATH}_${DATE}"
+			rm -rf "${TMP_DIR}/${APP_ID}_${DATE}"
 			exit 1
-			
 		fi	
-		tarDir
-	set +x	
-done
+	done
+	tarDir
 }
 
 # function to tar the files which are x number of days old
 function tarDir () {
-set -x 
-cd "${TMP_DIR}" && tar cPf "${ROOT_PATH}_${DATE}.tar.gz" "${ROOT_PATH}_${DATE}"
-#cd "${TMP_DIR}" && tar cPf "${FILE_PATH}/${ROOT_PATH}/${ROOT_PATH}_${DATE}.tar.gz" "${TMP_DIR}/${ROOT_PATH}_${DATE}"
-
-mv ${ROOT_PATH}_${DATE}.tar.gz "${FILE_PATH}/${ROOT_PATH}/"
-rm -rf "${ROOT_PATH}_${DATE}"
-set +x
+	cd "${TMP_DIR}" && tar cPf "${APP_ID}_${DATE}.tar.gz" "${APP_ID}_${DATE}"
+	mv "${APP_ID}_${DATE}.tar.gz" "${FILE_PATH}/${APP_ID}/"
+	rm -rf "${APP_ID}_${DATE}"
 }
 
-#Main Arguments
+# Main Arguments
 source_file=$1
 userCheck
 
