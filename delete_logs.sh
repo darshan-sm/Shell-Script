@@ -17,10 +17,11 @@ DATE=$(date +\%Y\%m\%d_\%H\%M)
 # User Execution Check
 function userCheck() {
 	if [[ $USER = "lzadmin" ]]; then 
-		sourceArguments
+		#sourceArguments
+		exit 1
 	else
-		echo "This script must be executed as LZADMIN ONLY !"
-                exit 1
+#		echo "This script must be executed as LZADMIN ONLY !"
+                #exit 1
 		sourceArguments
 	fi
 }
@@ -110,7 +111,7 @@ function moveFiles () {
 		if [  -f "$mvname" ]	
 		then
 			echo "moving $mvname to ${TMP_DIR}/${APP_ID}_${DATE}"
-			mv "$mvname" "${TMP_DIR}/${APP_ID}_${DATE}"
+			sudo mv "$mvname" "${TMP_DIR}/${APP_ID}_${DATE}"
 		else 
 			echo "NO FILES FOUND TO TAR" 
 			rm -rf "${TMP_DIR}/${APP_ID}_${DATE}"
@@ -123,7 +124,9 @@ function moveFiles () {
 # function to tar the files which are x number of days old
 function tarDir () {
 	cd "${TMP_DIR}" && tar cPf "${APP_ID}_${DATE}.tar.gz" "${APP_ID}_${DATE}"
-	mv "${APP_ID}_${DATE}.tar.gz" "${FILE_PATH}/${APP_ID}/"
+	sudo mv "${APP_ID}_${DATE}.tar.gz" "${FILE_PATH}/${APP_ID}/"
+	GROUP="lzg"`echo ${APP_ID} | cut -c3-`
+	sudo chown "${APP_ID}:${GROUP}" "${FILE_PATH}/${APP_ID}/${APP_ID}_${DATE}.tar.gz"
 	rm -rf "${APP_ID}_${DATE}"
 }
 
